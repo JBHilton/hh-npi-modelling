@@ -91,7 +91,9 @@ class MixingAnalysis:
         growth_rate = estimate_growth_rate(household_population,
                                            rhs,
                                            gr_interval,
-                                           gr_tol)
+                                           gr_tol,
+                                           x0=1e-3,
+                                           r_min_discount=0.99)
         if growth_rate is None:
             growth_rate = 0
 

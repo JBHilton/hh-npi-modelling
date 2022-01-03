@@ -86,7 +86,6 @@ class RateEquations:
         self.states_new_cases_only = \
             household_population.states[
                 :, model_input.new_case_compartment::self.no_compartments]
-        self.epsilon = epsilon
         self.inf_compartment_list = \
             subsystem_key[self.compartmental_structure][2]
         self.no_inf_compartments = len(self.inf_compartment_list)

@@ -235,7 +235,7 @@ def run_merge(
             merge_end)
     solution = solve_ivp(
         unmerged.rhs,
-        (merge_start + 1, t_end),
+        (merge_end, t_end),
         H_postmerge_0[:, -1],
         first_step=0.001,
         atol=ATOL)
