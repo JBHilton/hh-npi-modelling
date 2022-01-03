@@ -20,18 +20,30 @@ with open('outputs/oohi/results.pkl','rb') as f:
      iso_rate_range,
      iso_prob_range) = load(f)
 
+''' Parameter sweep code outputs as percentage, but scales mean we really want
+raw numbers.'''
+vuln_peaks *= 1e-2
+vuln_end *= 1e-2
+iso_peaks *= 1e-2
+cum_iso *= 1e-2
+
+''' These define basic scale of outputs - this is very specific to the outputs
+plotted in the paper and they're chosen to give us nice plots.'''
+p_scale = 1e5 # Scale of peaks
+c_scale = 1e3 # Scale of cumulative values
+
 vp_min = 0
-vp_max = ceil(vuln_peaks.max())
-vptick = vp_min + 0.25 * (vp_max - vp_min) * arange(5)
-ve_min = 5 * floor(vuln_end.min() / 5)
-ve_max = 5 * ceil(vuln_end.max() / 5)
-vetick = ve_min + 0.2 * (ve_max - ve_min) * arange(6)
+vp_max = ceil(p_scale * vuln_peaks.max()) / p_scale
+vptick = vp_min + 0.5 * (vp_max - vp_min) *  arange(3)
+ve_min = floor(c_scale * vuln_end.min()) / c_scale
+ve_max = ceil(c_scale * vuln_end.max()) / c_scale
+vetick = ve_min + 0.5 * (ve_max - ve_min) *  arange(3)
 ip_min = 0
-ip_max = 0.1 * ceil(iso_peaks.max() / 0.1)
-iptick = ip_min + 0.25 * (ip_max - ip_min) * arange(5)
+ip_max = ceil(p_scale * iso_peaks.max()) / p_scale
+iptick = ip_min + 0.5 * (ip_max - ip_min) *  arange(3)
 ci_min = 0
-ci_max = 5 * ceil(cum_iso.max() / 5)
-citick = ci_min + 0.25 * (ci_max - ci_min) * arange(5)
+ci_max = ceil(c_scale * cum_iso.max()) / c_scale
+citick = ci_min + 0.5 * (ci_max - ci_min) *  arange(3)
 
 fig, ((ax1, ax2), (ax3, ax4)) = subplots(2,
                                          2,
@@ -50,9 +62,10 @@ ax1.text(-0.5, 1.1, 'a)',
 divider = make_axes_locatable(ax1)
 cax = divider.append_axes("right", size="5%", pad=0.05)
 cbar = colorbar(axim,
-                label="Peak % prevalence\n in vulnerable population",
+                label="Peak prevalence\n in vulnerable population",
                 cax=cax,
                 ticks=vptick)
+cax.ticklabel_format(scilimits=(0,0))
 ax1.spines['top'].set_visible(False)
 ax1.spines['right'].set_visible(False)
 cbar.outline.set_visible(False)
@@ -68,9 +81,10 @@ ax2.text(-0.3, 1.1, 'b)',
 divider = make_axes_locatable(ax2)
 cax = divider.append_axes("right", size="5%", pad=0.05)
 cbar = colorbar(axim,
-                label="Cumulative % infected\n in vulnerable population",
+                label="Cumulative infected\n in vulnerable population",
                 cax=cax,
                 ticks=vetick)
+cax.ticklabel_format(scilimits=(0,0))
 ax2.spines['top'].set_visible(False)
 ax2.spines['right'].set_visible(False)
 cbar.outline.set_visible(False)
@@ -86,11 +100,12 @@ ax3.text(-0.5, 1.1, 'c)',
             fontsize='medium', verticalalignment='top', fontfamily='serif',
             bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
 divider = make_axes_locatable(ax3)
-cax = divider.append_axes("right", size="5%", pad=0.1)
+cax = divider.append_axes("right", size="5%", pad=0.05)
 cbar = colorbar(axim,
-                label="Peak % population\n in isolation",
+                label="Peak population\n in isolation",
                 cax=cax,
                 ticks=iptick)
+cax.ticklabel_format(scilimits=(0,0))
 ax3.spines['top'].set_visible(False)
 ax3.spines['right'].set_visible(False)
 cbar.outline.set_visible(False)
@@ -105,11 +120,12 @@ ax4.text(-0.3, 1.1, 'd)',
             fontsize='medium', verticalalignment='top', fontfamily='serif',
             bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
 divider = make_axes_locatable(ax4)
-cax = divider.append_axes("right", size="5%", pad=0.1)
+cax = divider.append_axes("right", size="5%", pad=0.05)
 cbar = colorbar(axim,
-                label="Cumulative % population\n in isolation",
+                label="Cumulative population\n in isolation",
                 cax=cax,
                 ticks=citick)
+cax.ticklabel_format(scilimits=(0,0))
 ax4.spines['top'].set_visible(False)
 ax4.spines['right'].set_visible(False)
 cbar.outline.set_visible(False)
@@ -131,7 +147,7 @@ ax1.set_ylabel('Isolation probability')
 divider = make_axes_locatable(ax1)
 cax = divider.append_axes("right", size="5%", pad=0.1)
 cbar = colorbar(axim,
-                label="Cumulative clinically\n vulnerable % prevalence",
+                label="Cumulative clinically\n vulnerable prevalence",
                 cax=cax)
 
 axim=ax2.imshow(cum_iso,
@@ -145,7 +161,7 @@ ax2.set_ylabel('Isolation probability')
 divider = make_axes_locatable(ax2)
 cax = divider.append_axes("right", size="5%", pad=0.1)
 cbar = colorbar(axim,
-                label="Total % of population\n who isolate",
+                label="Total of population\n who isolate",
                 cax=cax)
 
 fig.savefig('plots/oohi/poster_plot.png',

@@ -122,7 +122,8 @@ class BubbleAnalysis:
                                            rhs,
                                            gr_interval,
                                            gr_tol,
-                                           (1 - p[1]) * X0)
+                                           (1 - p[1]) * X0,
+                                           r_min_discount=0.99)
         if growth_rate is None:
             growth_rate = 0
 

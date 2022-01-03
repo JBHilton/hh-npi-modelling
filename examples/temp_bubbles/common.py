@@ -26,7 +26,7 @@ def build_mixed_compositions_pairwise(composition_list,
     total_prob_1 = zeros((no_comps,))
 
     for hh1 in range(no_comps):
-        hh2_max = min(no_comps, int(0.5 * (max_size - (hh1+1))))
+        hh2_max = min(no_comps, int((max_size - (hh1+1))))
         total_prob_1[hh1] = sum(composition_distribution[:hh2_max])
         for hh2 in range(no_comps):
             if (hh2>=hh1) and (hh2<hh2_max):
@@ -83,7 +83,7 @@ def build_mixed_compositions_threewise(composition_list,
     total_prob_2 = zeros((no_comps, no_comps)) # total_prob_2[i,j] stores summed probability of all possible third elements if first two are i,j
 
     for hh1 in range(no_comps):
-        hh2_max = min(no_comps, int(0.5 * (max_size - (hh1+1))))
+        hh2_max = min(no_comps, int((max_size - (hh1+1))))
         total_prob_1[hh1] = sum(composition_distribution[:hh2_max])
         for hh2 in range(no_comps):
             hh3_max = min(no_comps, max_size - (hh1+1) - (hh2+1))

@@ -498,9 +498,9 @@ def _seir_subsystem(self, household_spec):
     inf_event_class = array([], dtype=my_int)
 
     Q_int, inf_event_row, inf_event_col, inf_event_class = inf_events(s_comp,
-                i_comp,
+                e_comp,
                 [i_comp],
-                [1],
+                [ones(len(class_idx))],
                 r_home,
                 density_expo,
                 no_compartments,
@@ -516,7 +516,7 @@ def _seir_subsystem(self, household_spec):
                 inf_event_class)
     Q_int = progression_events(e_comp,
                     i_comp,
-                    gamma,
+                    alpha,
                     no_compartments,
                     states,
                     index_vector,

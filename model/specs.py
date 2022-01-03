@@ -80,6 +80,17 @@ TWO_AGE_SIR_SPEC = {
     'fit_method' : 'R*'
 }
 
+TWO_AGE_SIR_SPEC_FOR_FITTING = {
+    'compartmental_structure': 'SIR', # This is which subsystem key to use
+    'SITP': TRANCHE2_SITP,                     # Secondary inf probability
+    'recovery_rate': 1 / (LATENT_PERIOD +
+                          PRODROME_PERIOD +
+                          SYMPTOM_PERIOD),           # Recovery rate
+    'sus': array([1,1]),          # Relative susceptibility by
+                                  # age/vulnerability class
+    'fit_method' : 'EL'
+}
+
 SINGLE_AGE_SEIR_SPEC = {
     'compartmental_structure': 'SEIR', # This is which subsystem key to use
     'SITP': TRANCHE2_SITP,                     # Secondary inf probability
@@ -113,6 +124,17 @@ TWO_AGE_SEIR_SPEC = {
     'sus': array([1,1]),          # Relative susceptibility by
                                   # age/vulnerability class
     'fit_method' : 'R*'
+}
+
+TWO_AGE_SEIR_SPEC_FOR_FITTING = {
+    'compartmental_structure': 'SEIR', # This is which subsystem key to use
+    'SITP': TRANCHE2_SITP,                     # Secondary inf probability
+    'recovery_rate': 1 / (PRODROME_PERIOD +
+                          SYMPTOM_PERIOD),           # Recovery rate
+    'incubation_rate': 1 / LATENT_PERIOD,         # E->I incubation rate
+    'sus': array([1,1]),          # Relative susceptibility by
+                                  # age/vulnerability class
+    'fit_method' : 'EL'
 }
 
 TWO_AGE_SEPIR_SPEC = {
