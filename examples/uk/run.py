@@ -37,8 +37,10 @@ else:
     model_input_to_fit = SEPIRInput(SPEC, composition_list, comp_dist)
     household_population_to_fit = HouseholdPopulation(
         composition_list, comp_dist, model_input_to_fit)
-    rhs_to_fit = SEPIRRateEquations(model_input_to_fit, household_population_to_fit, NoImportModel(5,2))
-    beta_ext = estimate_beta_ext(household_population_to_fit, rhs_to_fit, growth_rate)
+    rhs_to_fit = SEPIRRateEquations(
+        model_input_to_fit, household_population_to_fit, NoImportModel(5,2))
+    beta_ext = estimate_beta_ext(
+        household_population_to_fit, rhs_to_fit, growth_rate)
     model_input = model_input_to_fit
     model_input.k_ext *= beta_ext
     with open('outputs/uk/fitted_model_input.pkl', 'wb') as f:
@@ -61,7 +63,8 @@ r_est = estimate_growth_rate(household_population, rhs, [0.001, 5], 1e-9)
 print('Estimated growth rate is',r_est,'.')
 print('Estimated doubling time is',log(2) / r_est,'.')
 
-H0 = make_initial_condition_by_eigenvector(growth_rate, model_input, household_population, rhs, 1e-5, 0.0)
+H0 = make_initial_condition_by_eigenvector(growth_rate,
+    model_input, household_population, rhs, 1e-5, 0.0)
 S0 = H0.T.dot(household_population.states[:, ::5])
 E0 = H0.T.dot(household_population.states[:, 1::5])
 P0 = H0.T.dot(household_population.states[:, 2::5])
