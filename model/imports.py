@@ -3,17 +3,6 @@ from abc import ABC
 from numpy import exp, ones, zeros
 from scipy.interpolate import interp1d
 
-def import_model_from_spec(spec, det):
-    text_to_type = {
-        'fixed': FixedImportModel,
-        'step': StepImportModel,
-        'exponential': ExponentialImportModel,
-        'care_home': CareHomeImportModel,
-    }
-    return text_to_type[spec['external_importation']['type']].make_from_spec(
-        spec['external_importation'], det)
-
-
 class ImportModel(ABC):
     '''Abstract class for importation models'''
     def __init__(self,
@@ -70,49 +59,3 @@ class StepImportModel(ImportModel):
         for i in range(self.no_entries):
             imports[i] = self.prevalence_interpolant[i](t)
         return imports
-
-
-class ExponentialImportModel(ImportModel):
-    def __init__(self, r, det_profile, undet_profile):
-        self.r = r
-        self.det_profile = det_profile
-        self.undet_profile = undet_profile
-
-    @classmethod
-    def make_from_spec(cls, spec, det):
-        r = float(spec['exponent'])
-        alpha = float(spec['alpha'])
-        det_profile = alpha * det
-        undet_profile = alpha * (ones((10,)) - det)
-        return cls(r, det_profile, undet_profile)
-
-    def detected(self, t):
-        return exp(self.r * t) * self.det_profile
-
-    def undetected(self, t):
-        return exp(self.r * t) * self.undet_profile
-
-class CareHomeImportModel(ImportModel):
-    def __init__(
-            self,
-            time,
-            prodromal_prev,
-            infected_prev):
-        self.prodromal_interpolant = interp1d(
-            time, prodromal_prev,
-            kind='nearest',
-            bounds_error=False,
-            fill_value='extrapolate',
-            assume_sorted=True)
-        self.infected_interpolant = interp1d(
-            time, infected_prev,
-            kind='nearest',
-            bounds_error=False,
-            fill_value='extrapolate',
-            assume_sorted=True)
-
-    def prodromal(self, t):
-        return self.prodromal_interpolant(t)
-
-    def infected(self, t):
-        return self.infected_interpolant(t)
