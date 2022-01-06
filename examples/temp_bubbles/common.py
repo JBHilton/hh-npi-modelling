@@ -224,9 +224,6 @@ def build_mixed_compositions(
     mixed_comp_dist = array(mixed_comp_dist)
     coeff = array(coeff)
     pairings = array(pairings).T
-    print(
-        'Before checking for big households, sum(dist)=',
-        sum(mixed_comp_dist))
 
     reverse_prod = hstack(([0], no_comps**arange(1, no_hh)))
     no_mixed_comps = len(mixed_comp_dist)
@@ -253,30 +250,16 @@ def build_mixed_compositions(
             this_comp.dot(reverse_prod) + this_comp[0], 0]
         mixed_comp_dist[new_comp_loc] += this_prob
 
-    print(
-        'After checking for big households, sum(dist)=',
-        sum(mixed_comp_dist))
     # Stores level of inflation of probability caused by adding prob of
     # compositions with size>max to ones with size<=max
     comp_scaler = mixed_comp_dist / ref_dist
 
-    print(large_merges)
-    print('Before deletion mixed_comp_list.shape=', mixed_comp_list.shape)
     mixed_comp_list = delete(mixed_comp_list, large_merges, axis=0)
-    print('After deletion mixed_comp_list.shape=', mixed_comp_list.shape)
-    print('Before deletion mixed_comp_dist.shape=', mixed_comp_dist.shape)
     mixed_comp_dist = delete(mixed_comp_dist, large_merges, axis=0)
-    print('After deletion mixed_comp_dist.shape=', mixed_comp_dist.shape)
-    print('Before deletion coeff.shape=', coeff.shape)
     coeff = delete(coeff, large_merges, axis=0)
-    print('After deletion coeff.shape=', coeff.shape)
-    print('Before deletion pairings.shape=', pairings.shape)
     pairings = delete(pairings, large_merges, axis=0)
-    print('After deletion pairings.shape=', pairings.shape)
-    print('Before deletion comp_scaler.shape=', comp_scaler.shape)
     comp_scaler = delete(comp_scaler, large_merges, axis=0)
-    print('After deletion comp_scaler.shape=', comp_scaler.shape)
-
+    
     return \
         mixed_comp_list, \
         mixed_comp_dist, \
