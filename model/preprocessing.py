@@ -260,7 +260,7 @@ class HouseholdSubsystemSpec:
 
     Methods
     -------
-    matrix shape():
+    matrix_shape():
         returns the shape of the transition matrix
     '''
     def __init__(self, composition, no_compartments):
@@ -292,14 +292,61 @@ class HouseholdSubsystemSpec:
 
 
 class HouseholdPopulation(ABC):
+    '''
+    Class to store the internal event transition matrix and other properties of
+    the household system.
+    ...
+    Attributes
+    ----------
+    composition_list : array
+        array listing the compositions present in the population
+    composition_distribution : array
+        array listing the proportion of households in each composition
+    ave_hh_size : float
+        mean number of individuals per household
+    compartmental_structure : str
+        name of compartmental structure
+    subsystem_function : function
+        compartmental structure-specific function used to construct the matrix
+        blocks
+    no_epi_compartments : int
+        number of epidemiological compartments
+    model_input : ModelInput
+    no_compositions : int
+        number of household compositions observed in the population
+    no_risk_groups : int
+        number of risk classes
+    which_composition : array
+        position of corresponding composition in composition list for each state
+
+    Methods
+    -------
+    composition_by_state():
+        returns array specifying household composition corresponding to each
+        system state
+    hh_size_by_state():
+        returns array specifying size of household corresponding to each system
+        state
+    '''
     def __init__(
             self,
             composition_list,
             composition_distribution,
             model_input,
             print_progress=False):
-        '''This builds internal mixing matrix for entire system of
-        age-structured households.'''
+        '''
+        Constructs necessary attributes
+
+        Parameters
+        ----------
+            composition_list : array
+                array listing the compositions present in the population
+            composition_distribution : array
+                array listing the proportion of households in each composition
+            model_input : ModelInput
+            print_progress : boolean
+                if True, function prints a loading bar
+        '''
 
         self.composition_list = composition_list
         self.composition_distribution = composition_distribution
@@ -337,6 +384,18 @@ class HouseholdPopulation(ABC):
         self._assemble_system(household_subsystem_specs, model_parts)
 
     def _assemble_system(self, household_subsystem_specs, model_parts):
+        '''
+        Constructs block diagonal transition matrix for within-household events
+
+        Parameters
+        ----------
+            household_subsystem_specs : list
+                list of composition-specific specs for each composition in the
+                population
+            model_parts : list
+                list of block diagonal components for each composition in the
+                population
+        '''
         # This is useful for placing blocks of system states
         cum_sizes = cumsum(array(
             [s.total_size for s in household_subsystem_specs]))
@@ -392,9 +451,27 @@ class HouseholdPopulation(ABC):
         return self.composition_list[self.which_composition, :].sum(axis=1)
 
 def calculate_sitp_rmse(x, model_input, sitp_data):
-    ''' This function calculates the root mean square error in the
-    susceptible-infectious transmission probability for a given set of
-    parameters and some empirical data.'''
+    '''
+    Calculates the root mean square error in the susceptible-infectious
+    transmission probability for chosen estimates of within-household
+    transmission rate and density parameter compared to empirical data.
+
+    Parameters
+    ----------
+        x : list
+            x[0] is chosen value of within-household transmission rate
+            x[1] is chosen value
+        model_input : ModelInput
+            Contains other model parameters
+        sitp_data : array
+            empirical estimates of SITP by household size
+
+    Returns
+    -------
+        : float
+            RMSE of model estimate SITP compared to empirical estimate
+
+    '''
 
     beta_int = x[0]
     density_expo = x[1]
@@ -417,10 +494,24 @@ def calculate_sitp_rmse(x, model_input, sitp_data):
     return sqrt(err_array.sum())
 
 def calculate_sitp(x, model_input, sitp_data):
-    ''' This function calculates the root mean square error in the
-    susceptible-infectious transmission probability for a given set of
-    parameters and some empirical data. This is assuming exponential periods in
-    each infectious compartment.'''
+    '''
+    Calculates the susceptible-infectious transmission probability for chosen
+    estimates of within-household transmission rate and density parameter.
+
+    Parameters
+    ----------
+        x : list
+            x[0] is chosen value of within-household transmission rate
+            x[1] is chosen value
+        model_input : ModelInput
+            Contains other model parameters
+
+    Returns
+    -------
+        sitp_array : array
+            model estimate of SITP
+
+    '''
 
     beta_int = x[0]
     density_expo = x[1]
@@ -443,11 +534,89 @@ def calculate_sitp(x, model_input, sitp_data):
 
 
 class ModelInput(ABC):
+    '''
+    Class to store model parameters common to all compartmental structures.
+    ...
+    Attributes
+    ----------
+    spec : model specifications
+    compartmental_structure : str
+        name of compartmental structure
+    no_compartments : int
+        number of epidemiological compartments
+    inf_compartment_list : list
+        list of infectious compartments from subsystem_key
+    no_inf_compartments : int
+        number of infectious compartments
+    new_case_compartment : int
+        position in list of compartments of compartment individuals enter upon
+        infection
+    fine_bounds : numpy array
+        age class boundaries used to define the contact matrix from data
+    coarse_bounds : numpy array
+        age class boundaries used in the model
+    no_age_classes : int
+        number of risk classes
+    pop_pyramid : numpy array
+        vector of population sizes for each age class under the fine age
+        structure
+    k_home : numpy array
+        within-household contact matrix
+    k_all : numpy array
+        contact matrix across all contacts
+    k_ext : numpy array
+        between-household contact matrix
+    composition_list : array
+        array listing the compositions present in the population
+    composition_distribution : array
+        array listing the proportion of households in each composition
+
+    ave_hh_size : float
+        mean number of individuals per household
+    subsystem_function : function
+        compartmental structure-specific function used to construct the matrix
+        blocks
+    model_input : ModelInput
+    no_compositions : int
+        number of household compositions observed in the population
+    which_composition : array
+        position of corresponding composition in composition list for each state
+
+    Methods
+    -------
+    hh_size_list():
+        return array of household size by composition
+    ave_hh_size():
+        return mean number of individuals per household
+    max_hh_size():
+        return largest household size observed in SEPIR_population
+    dens_adj_ave_hh_size(self):
+        return mean household size adjusted for density of within-household
+        transmission
+    ave_hh_by_class():
+        return mean number of individuals of each risk class per household
+    ave_contact_dur():
+        calculate mean duration of within-household contacts from contact data
+    '''
     def __init__(self,
                 spec,
                 composition_list,
                 composition_distribution,
                 header=None):
+        '''
+        Constructs necessary attributes
+
+        Parameters
+        ----------
+            spec : dictionary
+                dictionary of model specifications
+            composition_list : array
+                array listing the compositions present in the population
+            composition_distribution : array
+                array listing the proportion of households in each composition
+            header :
+                header used in contact data table, set to None by default
+        '''
         self.spec = deepcopy(spec)
 
         self.compartmental_structure = spec['compartmental_structure']
@@ -719,11 +888,24 @@ class SEPIRQInput(ModelInput):
     def alpha_1(self):
         return self.spec['incubation_rate']
 
-'''The following function constructs a matrix which maps the state (S,E,P,I,R)
-in the SEPIR model to the state (S,E,P,I,R,0) in the SEPIRQ model. This is used
-in the out-of-household-isolation example, where it is reduces the dimension of
-the linear solve which is used to calculate the initial conditions.'''
 def map_SEPIR_to_SEPIRQ(SEPIR_population, SEPIRQ_population):
+    '''
+    Constructs a matrix which maps the state (S,E,P,I,R) in the SEPIR model to
+    the state (S,E,P,I,R,0) in the SEPIRQ model.
+
+    Parameters
+    ----------
+        SEPIR_population : HouseholdPopulation
+            HouseholdPopulation object for the SEPIR model
+        SEPIRQ_population : HouseholdPopulation
+            HouseholdSubsystemSpec object for the SEPIRQ model
+
+    Returns
+    -------
+        map_matrix : numpy array
+            matrix encoding linear mapping from SEPIR state space to SEPIRQ
+            state space
+    '''
 
     no_SEPIR_states = SEPIR_population.Q_int.shape[0]
     no_SEPIRQ_states = SEPIRQ_population.Q_int.shape[0]
@@ -761,6 +943,37 @@ def get_multiplier_by_path_integral(r,
                                     index_prob,
                                     index_states,
                                     no_index_states):
+    '''
+    Calculates multiplier used in Euler-Lotka equations for growth rate
+    estimation.
+
+    Parameters
+    ----------
+        r : float
+            estimate of growth rate
+        Q_int : numpy array
+            internal event transition matrix
+        FOI_by_state : numpy array
+            array indexed by household state (rows) and risk
+            class (columns), with the (i, j)th entry equal to the
+            instantaneous infectious pressure exerted by individuals in
+            age class j belonging to households in state i.
+        index_prob : numpy array
+            array of probabilities that an age class j individual infected
+            outside of their own household becomes the index case in a household
+            of composition i
+        index_states : numpy array
+            array of locations in state list of states corresponding to the
+            start of a within-household outbreak
+        no_index_states : int
+            number of index states
+
+    Returns
+    -------
+        multiplier : sparse array
+            matrix scaling household outbreak profile in Euler Lotka
+            equations
+    '''
     multiplier = sparse((no_index_states, no_index_states))
     discount_matrix = r * spidentity(Q_int.shape[0]) - Q_int
     reward_mat = FOI_by_state.dot(index_prob)
@@ -787,6 +1000,37 @@ def get_multiplier_eigenvalue(r,
                               index_prob,
                               index_states,
                               no_index_states):
+    '''
+    Calculates multiplier used in Euler-Lotka equations for growth rate
+    estimation.
+
+    Parameters
+    ----------
+        r : float
+            estimate of growth rate
+        Q_int : numpy array
+            internal event transition matrix
+        FOI_by_state : numpy array
+            array indexed by household state (rows) and risk
+            class (columns), with the (i, j)th entry equal to the
+            instantaneous infectious pressure exerted by individuals in
+            age class j belonging to households in state i.
+        index_prob : numpy array
+            array of probabilities that an age class j individual infected
+            outside of their own household becomes the index case in a household
+            of composition i
+        index_states : numpy array
+            array of locations in state list of states corresponding to the
+            start of a within-household outbreak
+        no_index_states : int
+            number of index states
+
+    Returns
+    -------
+        evalue : float
+            leading eigenvalue scaling household outbreak profile in Euler Lotka
+            equations
+    '''
     multiplier = sparse((no_index_states, no_index_states))
     discount_matrix = r * spidentity(Q_int.shape[0]) - Q_int
     reward_mat = FOI_by_state.dot(index_prob)
@@ -813,6 +1057,29 @@ def estimate_growth_rate(household_population,
                          tol=1e-3,
                          x0=1e-3,
                          r_min_discount=0.95):
+    '''
+    Estimates exponential growth rate in early phase of epidemic from model
+    parameters using root finding.
+
+    Parameters
+    ----------
+        household_population : HouseholdPopulation
+        rhs : RateEquations
+        interval : list
+            Lower and upper bounds of region over which to perform root search
+        tol : float
+            absolute tolerance to be used in root finder
+        x0 : float
+            initial estimate of growth rate
+        r_min_discount : float
+            amount to scale lower bound of search interval by if initial attempt
+            throws an error
+
+    Returns
+    -------
+        r_now : float
+            estimated growth rate
+    '''
 
     reverse_comp_dist = diag(household_population.composition_distribution). \
         dot(household_population.composition_list)
@@ -864,6 +1131,22 @@ def estimate_growth_rate(household_population,
     return r_now
 
 def estimate_beta_ext(household_population,rhs,r):
+    '''
+    Estimates between-household transmission rate based on an estimate of growth
+    rate.
+
+    Parameters
+    ----------
+        household_population : HouseholdPopulation
+        rhs : RateEquations
+        r : float
+            estimated growth rate
+
+    Returns
+    -------
+        beta_ext : float
+            estimated between-household transmission rate
+    '''
 
     reverse_comp_dist = \
         diag(household_population.composition_distribution). \
@@ -915,12 +1198,31 @@ def build_support_bubbles(
         max_adults,
         max_bubble_size,
         bubble_prob):
-    '''This function returns the composition list and distribution which
-    results from a support bubble policy. max_adults specifies the maximum
-    number of adults which can be present in a household for that household to
-    be elligible to join a support bubble. The 2-age class structure with
-    children in age class 0 and adults in age class 1 is "hard-wired" into this
-    function as we only use the function for this specific example.'''
+    '''
+    Calculates the composition list and distribution which results from a
+    support bubble policy
+
+    Parameters
+    ----------
+    composition_list : array
+        array listing the compositions present in the population
+    comp_dist : array
+        array listing the proportion of households in each composition
+    max_adults : int
+        specifies the maximum number of adults which can be present in a
+        household for that household to be elligible to join a support bubble
+    max_bubble_size : int
+        maximum permitted size for support bubbles
+    bubble_prob : float
+        probability that an eligible household joins a support bubble
+
+    Returns
+    -------
+    mixed_comp_list : array
+        list of compositions once support bubbles are formed
+    mixed_comp_dist : array
+        distribution of compositions once support bubbles are formed
+    '''
 
     no_comps = composition_list.shape[0]
     hh_sizes = composition_list.sum(1)
@@ -963,12 +1265,27 @@ def add_vuln_class(model_input,
                     vuln_prop,
                     class_to_split = 1,
                     vuln_ext_scale = 0):
-    '''This function expands the model input to account for an additional
-    vulnerable class. We assume that this vulnerable class is identical
-    to members of the class class_to_split, apart from in their mixing
-    behaviour, where we assume that they do not engage in any external
-    mixing. vector_quants lists (as strings) the names of any class-stratified
-    vector quantities which need to be expanded to account for the new class.'''
+    '''
+    Expands the model input to account for an additional vulnerable class.
+
+    Parameters
+    ----------
+        model_input : ModelInput
+            Model input without vulnerable class
+        vuln_prop : float
+            Proportion of split class which belongs to vulnerable class
+        class_to_split : int
+            Class which we split into less and more clinically vulnerable
+            subclasses
+        vuln_ext_scale : float
+            Proportional reduction in between-household mixing for clinically
+            vulnerable individuals
+    Return
+    ------
+        expanded_input : ModelInput
+            Model input once class_to_split is separated into less and more
+            clinically vulnerable individuals
+    '''
 
     expanded_input = deepcopy(model_input)
 
@@ -1030,12 +1347,23 @@ def add_vuln_class(model_input,
 def merge_hh_inputs(model_input,
                     no_hh,
                     guest_trans_scaling):
-    '''This function expands the model input to account for an additional
-    vulnerable class. We assume that this vulnerable class is identical
-    to members of the class class_to_split, apart from in their mixing
-    behaviour, where we assume that they do not engage in any external
-    mixing. vector_quants lists (as strings) the names of any class-stratified
-    vector quantities which need to be expanded to account for the new class.'''
+    '''
+    Creates model input for a population of merged households.
+
+    Parameters
+    ----------
+        model_input : ModelInput
+            Model input of unmerged population
+        no_hh : int
+            Number of constituent households in each merged household
+        guest_trans_scaling : float
+            Relative intensity of mixing with guests compared to members of the
+            same household
+    Return
+    ------
+        merged_input : ModelInput
+            Model input for merged population simulations
+    '''
 
     merged_input = deepcopy(model_input)
 
@@ -1069,10 +1397,26 @@ def merge_hh_inputs(model_input,
 
     return merged_input
 
-''' The following function calculates hh size-stratified attack ratio from
-simulation results.'''
-
 def AR_by_size(household_population, H, R_comp, S_comp=0):
+    '''
+    Calculates hh size-stratified attack ratio from simulation results.
+
+    Parameters
+    ----------
+        household_population : HouseholdPopulation
+        H : numpy array
+            simulation output specifying state distribution over time
+        R_comp : int
+            position of recovered compartment in list of compartments
+        S_comp : int
+            position of susceptible compartment in list of compartments
+
+    Return
+    ------
+        attack_ratio : array
+            estimated attack ratio by household size at end of simulations
+    '''
+
     max_hh_size = household_population.model_input.max_hh_size
     attack_ratio = zeros((max_hh_size,))
     for hh_size in range(1,max_hh_size+1):

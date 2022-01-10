@@ -158,8 +158,10 @@ def inf_events(from_compartment,
                 inf_event_col,
                 inf_event_class):
 
-    # This function adds infection events to a within-household transition
-    # matrix, allowing for multiple infectious classes
+    '''
+    Adds infection events to the within-household transition matrix, allowing
+    for multiple infectious compartments
+    '''
 
     # Total number of compartments contributing to within-household infection:
     no_inf_compartments = len(inf_compartment_list)
@@ -195,9 +197,6 @@ def inf_events(from_compartment,
 
     return Q_int, inf_event_row, inf_event_col, inf_event_class
 
-''' The next function is used to set up the infection events in the SEPIRQ
-model, where some members may be temporarily absent, changing the current
-size of the household '''
 def size_adj_inf_events(from_compartment,
                 to_compartment,
                 inf_compartment_list,
@@ -216,6 +215,11 @@ def size_adj_inf_events(from_compartment,
                 inf_event_row,
                 inf_event_col,
                 inf_event_class):
+    '''
+    Adds infection events to the within-household transition matrix, allowing
+    for cases where some members may be temporarily absent, changing the current
+    size of the household
+    '''
 
      # Total number of compartments contributing to within-household infection
     no_inf_compartments = len(inf_compartment_list)
@@ -262,8 +266,10 @@ def progression_events(from_compartment,
                 matrix_shape,
                 Q_int):
 
-    # This function adds a single set of progression events to a
-    # within-household transition matrix
+    '''
+    Adds a single set of progression events to a within-household transition
+    matrix.
+    '''
 
     for i in range(len(class_idx)):
         from_present = \
@@ -298,9 +304,10 @@ def stratified_progression_events(from_compartment,
                 matrix_shape,
                 Q_int):
 
-    ''' This function adds a single set of progression events to a
-    within-household transition matrix, with progression rates stratified by
-    class.'''
+    '''
+    Adds a single set of progression events to a within-household transition
+    matrix with progression rates stratified by risk class.
+    '''
 
     for i in range(len(class_idx)):
         from_present = \
@@ -340,9 +347,9 @@ def isolation_events(from_compartment,
                 matrix_shape,
                 Q_int):
 
-    ''' This function adds a single set of isolation events to a
-    within-household transition matrix, with isolation rates stratified by
-    class.'''
+    '''
+    Adds isolation events to a within-household transition matrix with.
+    '''
 
     for i in range(len(class_idx)):
         # The following if statement checks whether class i is meant to isolate
@@ -382,12 +389,36 @@ def isolation_events(from_compartment,
     return Q_int
 
 def _sir_subsystem(self, household_spec):
-    '''This function processes a composition to create subsystems i.e.
-    matrices and vectors describing all possible epdiemiological states
-    for a given household composition
-    Assuming frequency-dependent homogeneous within-household mixing
-    composition[i] is the number of individuals in age-class i inside the
-    household'''
+    '''
+    Creates a single block of the internal event transition matrix for the SIR
+    model, corresponding to a single household composition.
+
+    Parameters
+    ----------
+        household_spec : HouseholdSubsystemSpec
+            Specifications for the system corresponding to this household
+            composition.
+
+    Returns
+    -------
+        tuple containing :
+            Q_int : array
+                block of the internal event transition matrix corresponding to
+                the chosen household composition
+            states : array
+                array of states in the stochastic process for this household
+                composition
+            inf_event_row : array
+                array listing rows of the locations in the matrix where
+                infection events occur
+            inf_event_col : array
+                array listing columns of the locations in the matrix where
+                infection events occur
+            inf_event_class : array
+                array listing classes affected by each infection event
+            reverse_prod : array
+            index_vector : array
+    '''
 
     no_compartments = household_spec.no_compartments
 
@@ -461,12 +492,36 @@ def _sir_subsystem(self, household_spec):
         index_vector))
 
 def _seir_subsystem(self, household_spec):
-    '''This function processes a composition to create subsystems i.e.
-    matrices and vectors describing all possible epdiemiological states
-    for a given household composition
-    Assuming frequency-dependent homogeneous within-household mixing
-    composition[i] is the number of individuals in age-class i inside the
-    household'''
+    '''
+    Creates a single block of the internal event transition matrix for the SEIR
+    model, corresponding to a single household composition.
+
+    Parameters
+    ----------
+        household_spec : HouseholdSubsystemSpec
+            Specifications for the system corresponding to this household
+            composition.
+
+    Returns
+    -------
+        tuple containing :
+            Q_int : array
+                block of the internal event transition matrix corresponding to
+                the chosen household composition
+            states : array
+                array of states in the stochastic process for this household
+                composition
+            inf_event_row : array
+                array listing rows of the locations in the matrix where
+                infection events occur
+            inf_event_col : array
+                array listing columns of the locations in the matrix where
+                infection events occur
+            inf_event_class : array
+                array listing classes affected by each infection event
+            reverse_prod : array
+            index_vector : array
+    '''
 
     no_compartments = household_spec.no_compartments
 
@@ -551,12 +606,36 @@ def _seir_subsystem(self, household_spec):
         index_vector))
 
 def _sepir_subsystem(self, household_spec):
-    '''This function processes a composition to create subsystems i.e.
-    matrices and vectors describing all possible epdiemiological states
-    for a given household composition
-    Assuming frequency-dependent homogeneous within-household mixing
-    composition[i] is the number of individuals in age-class i inside the
-    household'''
+    '''
+    Creates a single block of the internal event transition matrix for the SEPIR
+    model, corresponding to a single household composition.
+
+    Parameters
+    ----------
+        household_spec : HouseholdSubsystemSpec
+            Specifications for the system corresponding to this household
+            composition.
+
+    Returns
+    -------
+        tuple containing :
+            Q_int : array
+                block of the internal event transition matrix corresponding to
+                the chosen household composition
+            states : array
+                array of states in the stochastic process for this household
+                composition
+            inf_event_row : array
+                array listing rows of the locations in the matrix where
+                infection events occur
+            inf_event_col : array
+                array listing columns of the locations in the matrix where
+                infection events occur
+            inf_event_class : array
+                array listing classes affected by each infection event
+            reverse_prod : array
+            index_vector : array
+    '''
 
     no_compartments = household_spec.no_compartments
 
@@ -655,12 +734,36 @@ def _sepir_subsystem(self, household_spec):
         index_vector))
 
 def _sepirq_subsystem(self, household_spec):
-    '''This function processes a composition to create subsystems i.e.
-    matrices and vectors describing all possible epdiemiological states
-    for a given household composition
-    Assuming frequency-dependent homogeneous within-household mixing
-    composition[i] is the number of individuals in age-class i inside the
-    household'''
+    '''
+    Creates a single block of the internal event transition matrix for the
+    SEPIRQ model, corresponding to a single household composition.
+
+    Parameters
+    ----------
+        household_spec : HouseholdSubsystemSpec
+            Specifications for the system corresponding to this household
+            composition.
+
+    Returns
+    -------
+        tuple containing :
+            Q_int : array
+                block of the internal event transition matrix corresponding to
+                the chosen household composition
+            states : array
+                array of states in the stochastic process for this household
+                composition
+            inf_event_row : array
+                array listing rows of the locations in the matrix where
+                infection events occur
+            inf_event_col : array
+                array listing columns of the locations in the matrix where
+                infection events occur
+            inf_event_class : array
+                array listing classes affected by each infection event
+            reverse_prod : array
+            index_vector : array
+    '''
 
     no_compartments = household_spec.no_compartments
 
@@ -858,12 +961,36 @@ def _sepirq_subsystem(self, household_spec):
 
 
 def _sedur_subsystem(self, household_spec):
-    '''This function processes a composition to create subsystems i.e.
-    matrices and vectors describing all possible epdiemiological states
-    for a given household composition
-    Assuming frequency-dependent homogeneous within-household mixing
-    composition[i] is the number of individuals in age-class i inside the
-    household'''
+    '''
+    Creates a single block of the internal event transition matrix for the SEDUR
+    model, corresponding to a single household composition.
+
+    Parameters
+    ----------
+        household_spec : HouseholdSubsystemSpec
+            Specifications for the system corresponding to this household
+            composition.
+
+    Returns
+    -------
+        tuple containing :
+            Q_int : array
+                block of the internal event transition matrix corresponding to
+                the chosen household composition
+            states : array
+                array of states in the stochastic process for this household
+                composition
+            inf_event_row : array
+                array listing rows of the locations in the matrix where
+                infection events occur
+            inf_event_col : array
+                array listing columns of the locations in the matrix where
+                infection events occur
+            inf_event_class : array
+                array listing classes affected by each infection event
+            reverse_prod : array
+            index_vector : array
+    '''
 
     no_compartments = household_spec.no_compartments
 
