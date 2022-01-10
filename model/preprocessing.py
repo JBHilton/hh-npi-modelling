@@ -34,6 +34,35 @@ def make_initial_condition_by_eigenvector(growth_rate,
                                          return_AR = False,
                                          R_comp = 4,
                                          S_comp = 0):
+    '''
+    Calculates stable initial conditions for the households model by
+    estimating the eigenvector associated with early exponential growht.
+        Parameters:
+            growth_rate : float
+                exponential growth rate for the early dynamics
+            model_input : ModelInput
+            household_population : HouseholdPopulation
+            rhs : RateEquations
+            prev : float
+                initial infectious prevalence (proportion of population in new
+                case compartment)
+            starting_immunity : float
+                initial immunity (proportion of population in recovered
+                compartment)
+            return_AR: boolean
+                if True, the function returns estimates of attack ratio by
+                household size during the early epidemic
+            R_comp : int
+                position of recovered/immune compartment in list of compartments
+            S_comp : int
+                position of susceptible compartment in list of compartments
+
+        Returns:
+            H0 : numpy array
+                initial state distribution for self-consistent equations
+            AR : numpy array
+                estimated attack ratio by household size
+    '''
 
     Q_int = household_population.Q_int
 
@@ -121,16 +150,40 @@ def make_initial_condition_by_eigenvector(growth_rate,
 
 
 def make_aggregator(coarse_bounds, fine_bounds):
-    '''Construct a matrix that stores where each class in finer structure is
-    in coarser structure'''
+    '''
+    Create a matrix which maps a contact matrix to one with a coarser age
+    structure.
+        Parameters:
+            coarse_bounds : numpy array
+                age class boundaries for the output matrix
+            fine_bounds : numpy array
+                age class boundaries used to define the input matrix
+
+        Returns:
+            aggregator : numpy array
+    '''
     return array([
         where(coarse_bounds <= fine_bounds[i])[0][-1]
         for i in range(len(fine_bounds) - 1)])
 
 
 def aggregate_contact_matrix(k_fine, fine_bds, coarse_bds, pyramid):
-    '''Aggregates an age-structured contact matrice to return the corresponding
-    transmission matrix under a finer age structure.'''
+    '''
+    Converts a contact matrix to one with a coarser age structure.
+        Parameters:
+            k_fine : numpy array
+                contact matrix defined according to finer age structure
+            fine_bds : numpy array
+                age class boundaries used to define the input matrix
+            coarse_bds : numpy array
+                age class boundaries for the output matrix
+            pyramid : numpy array
+                vector of population sizes for each age class
+
+        Returns:
+            : numpy array
+            contact matrix defined according to coarser age structure
+    '''
 
     aggregator = make_aggregator(coarse_bds, fine_bds)
 
@@ -184,42 +237,44 @@ def aggregate_vector_quantities(v_fine, fine_bds, coarse_bds, pyramid):
 
     return pop_weight_matrix * v_fine
 
-
-def add_vulnerable_hh_members(
-        composition_list, composition_distribution, vuln_prop):
-    '''Create a version of the adult-child composition list and distribution
-    which distinguishes between vulnerable and non-vulnerable adutls. Note that
-    as written it is assuming only two age classes, with the second one being
-    the one we divide by vulnerability.'''
-
-    new_comp_list = copy(composition_list)
-    new_comp_list = hstack((
-        composition_list,
-        zeros((len(composition_list), 1), type=my_int)))
-    new_comp_dist = copy(composition_distribution)
-    for comp_no in range(len(composition_list)):
-        comp = composition_list[comp_no]
-        if comp[1] > 0:
-            new_comp_dist[comp_no] = \
-                composition_distribution[comp_no] \
-                * binom.pmf(0, comp[1], vuln_prop)
-            for i in range(1, comp[1]+1):
-                new_comp_list = vstack(
-                    (new_comp_list, [comp[0], comp[1]-i, i]))
-                prob = \
-                    composition_distribution[comp_no] \
-                    * binom.pmf(i, comp[1], vuln_prop)
-                new_comp_dist.append(prob)
-    return new_comp_list, new_comp_dist
-
-
 class HouseholdSubsystemSpec:
-    '''Class to store composition subsystem specification to avoid code
-    repetition'''
+    '''
+    Class to store subsystem specification for one specific composition to avoid
+    code repetition
+    ...
+    Attributes
+    ----------
+    composition : array
+        array listing the classes present in the composition
+    classes_present : array
+        indicates which classes are present in households of this composition
+    class_indexes : array
+        lists indices of which classes are present
+    system_sizes : array
+        number of ways the members of each class can be assigned to the model
+        compartments
+    total_size : float
+        number of states in stochastic process corresponding to this composition
+    no_compartments : int
+        number of epidemiological compartments in the model
+
+    Methods
+    -------
+    matrix shape():
+        returns the shape of the transition matrix
+    '''
     def __init__(self, composition, no_compartments):
+        '''
+        Constructs attributes
+
+        Parameters
+        ----------
+        composition : array
+            array listing the classes present in the composition
+        no_compartments : int
+            number of epidemiological compartments in the model
+        '''
         self.composition = composition
-        # This is an array of logicals telling you which classes are present in
-        # each composition
         self.classes_present = composition.ravel() > 0
         self.class_indexes = where(self.classes_present)[0]
         self.system_sizes = array([

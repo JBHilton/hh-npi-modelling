@@ -4,7 +4,19 @@ from numpy import exp, ones, zeros
 from scipy.interpolate import interp1d
 
 class ImportModel(ABC):
-    '''Abstract class for importation models'''
+    '''
+    This class provides a structure for modelling imports of infection from
+    outside of the model population.
+    ...
+    Attributes
+    ----------
+    no_inf_compartments : int
+        number of infectious compartments
+    no_age_classes : int
+        number of age/risk classes
+    no_entries : int
+        total number of infectious compartments stratified by age
+    '''
     def __init__(self,
                 no_inf_compartments,
                 no_age_classes):
@@ -16,6 +28,9 @@ class ImportModel(ABC):
 
 
 class NoImportModel(ImportModel):
+    '''
+    Derived class for modelling a closed population with no import of infection.
+    '''
     def cases(self, t):
         return zeros(self.no_age_classes,)
 
@@ -25,15 +40,29 @@ class NoImportModel(ImportModel):
 
 
 class FixedImportModel(ImportModel):
+    '''
+    Derived class for modelling imports at a constant rate.
+    '''
     def __init__(
             self,
             no_inf_compartments,
             no_age_classes,
             import_array):
-        '''import_arrays should be a list of arrays. The number of arrays is
-        no_inf_compartments and each has length no_age_classes. The jth element of
-        the ith array is the rate at which individuals in age class j are infected
-        by external cases in infectious compartment i.'''
+        '''
+        Constructs necessary attributes.
+
+        Parameters
+        ----------
+            no_inf_compartments : int
+                number of infectious compartments
+            no_age_classes : int
+                number of age/risk classes
+            import_array : list
+                list of no_inf_compartments arrays each of length no_age_classes.
+                jth element of the ith array is the rate at which individuals in
+                class j are infected by external cases in infectious
+                compartment i.
+        '''
         super().__init__(no_inf_compartments, no_age_classes)
         self.import_array = import_array
 

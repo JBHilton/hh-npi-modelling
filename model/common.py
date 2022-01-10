@@ -9,8 +9,23 @@ from model.subsystems import subsystem_key
 
 
 def build_external_import_matrix(household_population, FOI):
-    '''Gets sparse matrices containing rates of external infection in a
-    household of a given type'''
+    '''
+    Returns a sparse matrices containing rates at which external infection
+    events occur in the household-level stochastic process.
+        Parameters:
+            household_population : HouseholdPopulation
+                HouseholdPopulation object for the system we are simulating
+            FOI : numpy array
+                array indexed by household state (rows) and risk
+                class (columns), with the (i, j)th entry equal to the
+                instantaneous infectious pressure experienced by individuals in
+                age class j belonging to households in state i.
+
+        Returns:
+            Q_ext : numpy array
+                a transition matrix containing the rates at which external
+                infection events occur.
+    '''
 
     row = household_population.inf_event_row
     col = household_population.inf_event_col
@@ -31,47 +46,62 @@ def build_external_import_matrix(household_population, FOI):
     return Q_ext
 
 
-def build_external_import_matrix_SEPIRQ(
-        household_population, FOI_pro, FOI_inf):
-    '''Gets sparse matrices containing rates of external infection in a
-    household of a given type'''
-
-    row = household_population.inf_event_row
-    col = household_population.inf_event_col
-    inf_class = household_population.inf_event_class
-    total_size = len(household_population.which_composition)
-
-    # Figure out which class gets infected in this transition
-    p_vals = FOI_pro[row, inf_class]
-    i_vals = FOI_inf[row, inf_class]
-
-    matrix_shape = (total_size, total_size)
-    Q_ext_p = sparse(
-        (p_vals, (row, col)),
-        shape=matrix_shape)
-    Q_ext_i = sparse(
-        (i_vals, (row, col)),
-        shape=matrix_shape)
-
-    diagonal_idexes = (arange(total_size), arange(total_size))
-    S = Q_ext_p.sum(axis=1).getA().squeeze()
-    Q_ext_p += sparse((-S, diagonal_idexes))
-    S = Q_ext_i.sum(axis=1).getA().squeeze()
-    Q_ext_i += sparse((-S, diagonal_idexes))
-
-    return Q_ext_p, Q_ext_i
-
-
 class RateEquations:
-    '''This class represents a functor for evaluating the rate equations for
-    the model with no imports of infection from outside the population. The
-    state of the class contains all essential variables'''
+    '''
+    This class represents a functor for evaluating the rate equations for
+    the household-structured model.
+    ...
+    Attributes
+    ----------
+    compartmental_structure : str
+        name of compartmental structure inherited from household_population
+    household_population : HouseholdPopulation
+        underlying household population object
+    epsilon : float
+        intensity of between-household mixing relative to imports from outside
+        the model population, by default set to 1
+    Q_int : numpy array
+        transition matrix for within-household event system inherited from
+        household_population
+    composition_by_state : function
+        returns household composition corresponding to each system state
+    states_sus_only : numpy array
+        array of number of susceptibles in each risk class by system state
+    s_present : numpy array
+        locations of states with at least one susceptible present
+    states_new_cases_only : numpy array
+        array of number of new cases in each risk class by system state
+    inf_compartment_list : list
+        list of infectious compartments from subsystem_key
+    no_inf_compartments : int
+        number of infectious compartments
+    import_model : ImportModel
+        model to be used for external imports from outside the model population
+    ext_matrix_list : list
+        list of risk class-stratified transmission matrices, by infectious
+        compartment
+    inf_by_state_list : list
+        list of arrays each containing number of individuals in each infectious
+        compartment in each risk class by system state
+    '''
     # pylint: disable=invalid-name
     def __init__(self,
                  model_input,
                  household_population,
                  import_model,
                  epsilon=1.0):
+        '''
+        Constructs necessary attributes.
+
+        Parameters
+        ----------
+            model_input : ModelInput
+            household_population : HouseholdPopulation
+            import_model : ImportModel
+            epsilon : float
+                intensity of between-household mixing relative to imports from
+                outside the model population, by default set to 1
+        '''
 
         self.compartmental_structure = \
             household_population.compartmental_structure
@@ -101,8 +131,21 @@ class RateEquations:
                 :, self.inf_compartment_list[ic]::self.no_compartments])
 
     def __call__(self, t, H):
-        '''hh_ODE_rates calculates the rates of the ODE system describing the
-        household ODE model'''
+        '''
+        Calculates instantaneous rates for a system in state H at time t.
+
+        Parameters
+        ----------
+            t : int
+                current time
+            H : numpy array
+                current state
+
+        Returns
+        -------
+            dH : array
+                value of dH_i/dt for each state H_i
+        '''
         Q_ext = self.external_matrices(t, H)
         if (H < 0).any():
             # pdb.set_trace()
@@ -114,14 +157,48 @@ class RateEquations:
         return dH
 
     def external_matrices(self, t, H):
+        '''
+        Calculates transition matrix transition matrix containing the rates at
+        which external infection events occur for a system in state H at time t
+
+        Parameters
+        ----------
+            t : int
+                current time
+            H : numpy array
+                current state
+
+        Returns
+        -------
+            Q_ext : numpy array
+                a transition matrix containing the rates at which external
+                infection events occur
+        '''
         FOI = self.get_FOI_by_class(t, H)
         return build_external_import_matrix(
             self.household_population,
             FOI)
 
     def get_FOI_by_class(self, t, H):
-        '''This calculates the age-stratified force-of-infection (FOI) on each
-        household composition'''
+        '''
+        Calculates age-stratified force-of-infection (FOI) on individuals in
+        each risk class by household state for a system in state H at time t
+
+        Parameters
+        ----------
+            t : int
+                current time
+            H : numpy array
+                current state
+
+        Returns
+        -------
+            FOI : numpy array
+                array indexed by household state (rows) and risk
+                class (columns), with the (i, j)th entry equal to the
+                instantaneous infectious pressure experienced by individuals in
+                age class j belonging to households in state i.
+        '''
         # Average number of each class by household
         denom = H.T.dot(self.composition_by_state)
 
@@ -222,8 +299,25 @@ class SEPIRQRateEquations(RateEquations):
                     :, self.inf_compartment_list[ic]::self.no_compartments])
 
     def get_FOI_by_class(self, t, H):
-        '''This calculates the age-stratified force-of-infection (FOI) on each
-        household composition'''
+        '''
+        Calculates age-stratified force-of-infection (FOI) on individuals in
+        each risk class by household state for a system in state H at time t
+
+        Parameters
+        ----------
+            t : int
+                current time
+            H : numpy array
+                current state
+
+        Returns
+        -------
+            FOI : numpy array
+                array indexed by household state (rows) and risk
+                class (columns), with the (i, j)th entry equal to the
+                instantaneous infectious pressure experienced by individuals in
+                age class j belonging to households in state i.
+        '''
 
         FOI = self.states_sus_only.dot(diag(self.import_model.cases(t)))
 

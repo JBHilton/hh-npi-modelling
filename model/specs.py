@@ -5,25 +5,62 @@ from numpy import arange, array, multiply, ones, zeros
 from numpy.random import rand
 
 def draw_random_two_age_SEPIR_specs(spec,
-                      AR_pars = [0.25, 0.75, 6],
+                      SITP_pars = [0.25, 0.75, 6],
                       rec_pars = [1, 7],
                       inc_pars = [1, 10],
                       pro_pars = [1, 5],
-                      pro_trans_pars = [1, 1],
+                      pro_trans_pars = [5, 5],
                       sus_pars = [1, 1],
                       dens_pars = [0, 1],
                       R_pars = [1, 2]):
+    '''
+    Generates a random spec dictionary by drawing parameters uniformly at random
+    from user-defined ranges.
+        Parameters:
+            spec : dictionary
+                a dummy set of specs for the SEPIR model which we will overwrite
+                with random values
+            SITP_pars : list
+                a list containing the bounds for the uniform distribution for
+                the first randomly chosen SITP value, and the length of the
+                SITP-by-household size list
+            rec_pars : list
+                a list containing the bounds for the uniform distribution for
+                the symptomatic infectious period
+            inc_pars : list
+                a list containing the bounds for the uniform distribution for
+                the incubation period
+            pro_pars : list
+                a list containing the bounds for the uniform distribution for
+                the prodromal period
+            pro_trans_pars : list
+                a list containing the maxima for the uniform distribution for
+                the relative infectivity of prodromal cases by risk class
+            sus_pars : list
+                a list containing the maxima for the uniform distribution for
+                susceptibility by risk class
+            dens_pars : list
+                a list containing the bounds for the uniform distribution for
+                the density parameter
+            R_pars : list
+                a list containing the bounds for the uniform distribution for
+                the household-level reproductive ratio
+
+        Returns:
+            rand_spec : dictionary
+                a dictionary of random specs for a SEPIR model.
+    '''
 
     rand_spec = deepcopy(spec)
 
-    ''' Start by drawing secondary inf probabilities from uniform distribution,
-    with each SITP bounded above by previous one, starting default [0.25, 0.75]'''
-    rand_spec['SITP'] = zeros(AR_pars[2],) # AR_pars[2] is max hh size
-    prev_AR = AR_pars[1]
-    for n in range(AR_pars[2] - 1): # SITP is indexed by hh size minus one
-        new_AR = AR_pars[0] + (prev_AR - AR_pars[0]) * rand(1,)
-        rand_spec['SITP'][n] = new_AR
-        prev_AR = new_AR
+    # Start by drawing secondary inf probabilities from uniform distribution,
+    # with each SITP bounded above by previous one, starting default [0.25, 0.75]
+    rand_spec['SITP'] = zeros(SITP_pars[2],) # SITP_pars[2] is max hh size
+    prev_SITP = SITP_pars[1]
+    for n in range(SITP_pars[2] - 1): # SITP is indexed by hh size minus one
+        new_SITP = SITP_pars[0] + (prev_SITP - SITP_pars[0]) * rand(1,)
+        rand_spec['SITP'][n] = new_SITP
+        prev_SITP = new_SITP
 
      # Rec rate unif, default [1, 7]
     rand_spec['recovery_rate'] = 1 / (
