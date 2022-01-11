@@ -22,6 +22,37 @@ def state_recursor(
         x,
         depth,
         k):
+    '''
+    Recursively generates state space for a single age class.
+
+    Parameters
+    ----------
+        states : numpy array
+            unfinished state space array
+        no_compartments : int
+            number of epidemiological compartments
+        age_class : int
+            specifies which risk class we are defining the states for
+        b_size : int
+            total size of each block of state space for this risk class
+        n_blocks : int
+            number of times to repat the cycle of states for this risk class
+        con_reps : int
+            number of times to repeat each state in the cycle
+        c : int
+        x : numpy array
+        depth : int
+            current position in list of compartments
+        k : int
+            current position in list of states
+
+    Returns
+    -------
+        states : numpy array
+            state space array with states for this age class added to it
+        k : int
+            number of states we have cycled through
+    '''
     if depth < no_compartments-1:
         for x_i in arange(c + 1 - x.sum()):
             x[0, depth] = x_i
@@ -68,6 +99,38 @@ def build_states_recursively(
         num_blocks,
         consecutive_repeats,
         composition):
+    '''
+    Constructs state space of the within-household stochastic process as an
+    array.
+
+    Parameters
+    ----------
+        total_size : integer
+            total number of states
+        no_compartments : integer
+            number of epidemiological compartments
+        classes_present : array
+            lists which risk classes are present in this composition
+        block_size : numpy array
+            total length of cycle through state space with repeating states for
+            each class
+        num_blocks : numpy array
+            number of repeating blocks of states for each class
+        consecutive_repeats : numpy array
+            number of times to repeat states for each class while cycling over
+            states of subsequent classes
+        composition : numpy array
+            household composition
+
+    Returns
+    -------
+        states : numpy array
+            array containing state space of stochastic process, where each row
+            corresponds to a state, and columns correspond to a risk class and
+            epidemiological compartment
+        k : int
+            number of states for each age class, useful for debugging purposes
+    '''
     states = zeros(
         (total_size, no_compartments*len(classes_present)),
         dtype=my_int)
@@ -88,6 +151,29 @@ def build_states_recursively(
 
 
 def build_state_matrix(household_spec):
+    '''
+    Constructs state space of the within-household stochastic process as an
+    array along with a mapping to encode states as consecutive integers.
+
+    Parameters
+    ----------
+        household_spec : HouseholdSubsystemSpec
+            specifications for this household
+
+    Returns
+    -------
+        states : numpy array
+            array containing state space of stochastic process, where each row
+            corresponds to a state, and columns correspond to a risk class and
+            epidemiological compartment
+        reverse_prod : numpy array
+            maps each state to a unique positive integer, which in general will
+            not be equal to its row position in states array
+        index_vector : sparse array
+            maps integers from reverse_prod to the position of corresponding
+            state in ordered state space list
+        rows : array
+    '''
     # Number of times you repeat states for each configuration
     consecutive_repeats = concatenate((
         ones(1, dtype=my_int), cumprod(household_spec.system_sizes[:-1])))

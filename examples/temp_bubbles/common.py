@@ -11,6 +11,31 @@ from scipy.stats import multinomial
 def build_mixed_compositions_pairwise(composition_list,
                                         composition_distribution,
                                         max_size=12):
+    '''
+    Creates household composition list and distribution for population of
+    bubbles of two households.
+
+    Parameters
+    ----------
+        composition_list : numpy array
+            list of observed compositions in unbubbled population
+        composition_distribution : numpy array
+            distribution of observed compositions in unbubbled population
+        max_size : int
+            maximum permitted bubble size
+
+    Returns
+    -------
+        mixed_comp_list : numpy array
+            list of observed compositions in the bubbled population
+        mixed_comp_dist : numpy array
+            distribution of observed compositions in the bubbled population
+        hh_dimension : int
+            number of risk classes in unbubbled households
+        pairings : numpy array
+            array specifying position in unbubbled composition list of
+            constituent compositions for each bubbbled composition
+    '''
 
     no_comps = composition_list.shape[0]
 
@@ -67,6 +92,31 @@ def build_mixed_compositions_pairwise(composition_list,
 def build_mixed_compositions_threewise(composition_list,
                                         composition_distribution,
                                         max_size):
+    '''
+    Creates household composition list and distribution for population of
+    bubbles of three households.
+
+    Parameters
+    ----------
+        composition_list : numpy array
+            list of observed compositions in unbubbled population
+        composition_distribution : numpy array
+            distribution of observed compositions in unbubbled population
+        max_size : int
+            maximum permitted bubble size
+
+    Returns
+    -------
+        mixed_comp_list : numpy array
+            list of observed compositions in the bubbled population
+        mixed_comp_dist : numpy array
+            distribution of observed compositions in the bubbled population
+        hh_dimension : int
+            number of risk classes in unbubbled households
+        pairings : numpy array
+            array specifying position in unbubbled composition list of
+            constituent compositions for each bubbbled composition
+    '''
 
     no_comps = composition_list.shape[0]
 
@@ -157,6 +207,26 @@ def initialise_merged_system(
         unmerged_population,
         merged_population,
         state_match):
+    '''
+    Creates initial conditions for bubbled population system based on state of
+    unbubbled population system by mapping between state spaces of the systems.
+
+    Parameters
+    ----------
+        H0_unmerged : numpy array
+            state of unbubbled system at start of merge
+        unmerged_population : HouseholdPopulation
+            HouseholdPopulation object for unbubbled system
+        merged_population : HouseholdPopulation
+            HouseholdPopulation object for bubbled system
+        state_match : numpy array
+            array mapping between bubbled and unbubbled state spaces
+
+    Returns
+    -------
+        H0_merged : numpy array
+            initial conditions for bubbled system at start of merge
+    '''
 
     wc_um = unmerged_population.which_composition
     wc_m = merged_population.which_composition
@@ -173,110 +243,34 @@ def initialise_merged_system(
 
     return H0_merged
 
-def build_mixed_compositions(
-        composition_list,
-        composition_distribution,
-        no_hh=2,
-        max_size=12):
-
-    no_comps = composition_list.shape[0]
-
-    if composition_list.ndim == 1:
-        hh_dimension = 1
-    else:
-        hh_dimension = composition_list.shape[1]
-
-    no_mixed_comps = 0
-
-    mixed_comp_list = []
-    mixed_comp_dist = []
-
-    hhi = no_hh*[0]
-    pairings = []
-    for pairing_index in range(no_hh):
-        pairings.append([])
-    coeff = [] # This stores number of appearances each combination would make in a "full" merged list
-
-    def comp_iterator(depth, no_hh):
-        if depth < no_hh:
-            for i in range(hhi[depth-1], no_comps):
-                hhi[depth] = i
-                comp_iterator(depth+1, no_hh)
-        else:
-            index = 0
-            for hh in range(no_hh):
-                index +=  hhi[hh] * no_comps**(no_hh - 1 - hh)
-                pairings[hh].append(hhi[hh])
-            this_mix_comp = zeros((no_hh*hh_dimension,))
-            hist = zeros((no_comps,))
-            for hh in range(no_hh):
-                this_mix_comp[hh*hh_dimension:(hh+1)*hh_dimension] = \
-                 composition_list[hhi[hh], ]  # TODO: What happens after the comma?
-                hist[hhi[hh]] += 1
-            this_mix_prob = multinomial.pmf(
-                hist, n=no_hh, p=composition_distribution)
-            mixed_comp_list.append(this_mix_comp)
-            mixed_comp_dist.append(this_mix_prob)
-            coeff.append(factorial(no_hh)/prod(factorial(hist)))
-
-    comp_iterator(0, no_hh)
-    mixed_comp_list = array(mixed_comp_list, dtype=my_int)
-    mixed_comp_dist = array(mixed_comp_dist)
-    coeff = array(coeff)
-    pairings = array(pairings).T
-
-    reverse_prod = hstack(([0], no_comps**arange(1, no_hh)))
-    no_mixed_comps = len(mixed_comp_dist)
-    rows = [
-        mixed_comp_list[k, :].dot(reverse_prod) + mixed_comp_list[k, 0]
-        for k in range(no_mixed_comps)]
-    mixed_comp_index_vector = sparse((
-        arange(no_mixed_comps),
-        (rows, [0]*no_mixed_comps)), dtype=my_int)
-
-    mixed_sizes = mixed_comp_list.sum(axis=1)
-    large_merges = where(mixed_sizes > max_size)[0]
-
-    ref_dist = deepcopy(mixed_comp_dist)
-
-    for merge_no in large_merges:
-        this_prob = mixed_comp_dist[merge_no]
-        this_comp = mixed_comp_list[merge_no, :]
-        current_size = mixed_sizes[merge_no]
-        while current_size > max_size:
-            this_comp[this_comp.argmax()] -= 1
-            current_size -= 1
-        new_comp_loc = mixed_comp_index_vector[
-            this_comp.dot(reverse_prod) + this_comp[0], 0]
-        mixed_comp_dist[new_comp_loc] += this_prob
-
-    # Stores level of inflation of probability caused by adding prob of
-    # compositions with size>max to ones with size<=max
-    comp_scaler = mixed_comp_dist / ref_dist
-
-    mixed_comp_list = delete(mixed_comp_list, large_merges, axis=0)
-    mixed_comp_dist = delete(mixed_comp_dist, large_merges, axis=0)
-    coeff = delete(coeff, large_merges, axis=0)
-    pairings = delete(pairings, large_merges, axis=0)
-    comp_scaler = delete(comp_scaler, large_merges, axis=0)
-    
-    return \
-        mixed_comp_list, \
-        mixed_comp_dist, \
-        hh_dimension, \
-        pairings, \
-        mixed_comp_index_vector, \
-        reverse_prod, \
-        coeff, \
-        comp_scaler
-
-
 def match_merged_states_to_unmerged(
         unmerged_population,
         merged_population,
         pairings,
         no_hh,
         no_compartments):
+    '''
+    Create a mapping between state spaces of the bubbled and unbubbled
+    populations.
+
+    Parameters
+    ----------
+        unmerged_population : HouseholdPopulation
+            HouseholdPopulation object for unbubbled system
+        merged_population : HouseholdPopulation
+        pairings : numpy array
+            array specifying position in unbubbled composition list of
+            constituent compositions for each bubbbled composition
+        no_hh : int
+            number of households in each bubble
+        no_compartments : int
+            number of epidemiological compartments in the model
+
+    Returns
+    -------
+        state_match : numpy array
+            array mapping states of bubbled system to unbubbled system
+    '''
 
     rp_um = unmerged_population.reverse_prod
     iv_um = unmerged_population.index_vector
@@ -308,6 +302,32 @@ def demerged_initial_condition(H_merged,
                             pairings,
                             no_hh =2,
                             no_compartments = 5):
+    '''
+    Creates initial conditions for unbubbled population system based on state of
+    bubbled population system by mapping between state spaces of the systems.
+
+    Parameters
+    ----------
+        H_unmerged : numpy array
+            state of bubbled system at start of merge
+        unmerged_population : HouseholdPopulation
+            HouseholdPopulation object for unbubbled system
+        merged_population : HouseholdPopulation
+            HouseholdPopulation object for bubbled system
+        pairings : numpy array
+            array specifying position in unbubbled composition list of
+            constituent compositions for each bubbbled composition
+        no_hh : int
+            number of households in each bubble
+        no_compartments : int
+            number of epidemiological compartments in the model
+
+    Returns
+    -------
+        H0 : numpy array
+            initial conditions for unbubbled system
+    '''
+
     H0_len = sum(unmerged_population.system_sizes)
     H0 = zeros((H0_len,))
     reverse_prod = unmerged_population.reverse_prod
