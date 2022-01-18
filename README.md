@@ -1,6 +1,10 @@
-Publication version of the Python age-household model. Run the examples from
-the main repo directory. In order to make the `model` directory visible as
-Python module, run the following from the main directory of the repo e.g.
+Publication version of the Python age-household model.
+A detailed description of the code and examples can be
+found in this repo's wiki.
+
+Run the examples from the main repo directory. In order
+to make the `model` directory visible as Python module,
+run the following from the main directory of the repo e.g.
 
 
 On UNIX-like system
