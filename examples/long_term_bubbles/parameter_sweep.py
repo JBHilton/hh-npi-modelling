@@ -166,7 +166,7 @@ class BubbleAnalysis:
         peaks = 100 * max(I)
         R_end = 100 * R[-1]
 
-        return [growth_rate, peaks, R_end, attack_ratio, hh_outbreak_prop]
+        return [growth_rate, peaks, R_end, hh_outbreak_prop, attack_ratio]
 
 def main(no_of_workers,
          bubble_prob_vals,
