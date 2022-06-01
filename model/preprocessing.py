@@ -19,7 +19,6 @@ from scipy.stats import binom
 from time import time as get_time
 from tqdm import tqdm
 from model.common import ( sparse, my_int )
-from model.imports import import_model_from_spec
 from model.subsystems import subsystem_key
 
 MAX_OUTBREAK_DURATION = 365 # Duration used for integration of within-hh
