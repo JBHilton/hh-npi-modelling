@@ -166,6 +166,101 @@ cbar = fig.colorbar(axim,
 cbar.set_label("Peak %\n prevalence", fontsize=12)
 cbar.outline.set_visible(False)
 
+axim = ax_0.contour(100 * baseline_peak_array,
+                  colors='w',
+                  levels=vtick,
+                  vmin=vmin,
+                  vmax=vmax,
+                  extent=(0, 1, 0, 1))
+ax_0.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+ax_0.set_ylabel('Single household\n density exponent', fontsize=12)
+ax_0.text(-0.5, 1, 'a)',
+            fontsize=12,
+            verticalalignment='top',
+            fontfamily='serif',
+            bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
+ax_0.spines['top'].set_visible(False)
+ax_0.spines['right'].set_visible(False)
+
+axim = ax_1.contour(100 * peak_data0,
+                  colors='w',
+                  levels=vtick,
+                  vmin=vmin,
+                  vmax=vmax,
+                  extent=(0, 1, 0, 1))
+ax_1.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+ax_1.text(-0.2, 1, 'b)',
+            fontsize=12,
+            verticalalignment='top',
+            fontfamily='serif',
+            bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
+ax_1.spines['top'].set_visible(False)
+ax_1.spines['right'].set_visible(False)
+
+axim = ax_2.contour(100 * peak_data2,
+                  colors='w',
+                  levels=vtick,
+                  vmin=vmin,
+                  vmax=vmax,
+                  extent=(0, 1, 0, 1))
+ax_2.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+ax_2.set_ylabel('Single household\n density exponent', fontsize=12)
+ax_2.text(-0.5, 1, 'c)',
+            fontsize=12,
+            verticalalignment='top',
+            fontfamily='serif',
+            bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
+ax_2.spines['top'].set_visible(False)
+ax_2.spines['right'].set_visible(False)
+
+axim = ax_3.contour(100 * peak_data1,
+                  colors='w',
+                  levels=vtick,
+                  vmin=vmin,
+                  vmax=vmax,
+                  extent=(0, 1, 0, 1))
+ax_3.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+ax_3.text(-0.2, 1, 'd)',
+            fontsize=12,
+            verticalalignment='top',
+            fontfamily='serif',
+            bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
+ax_3.spines['top'].set_visible(False)
+ax_3.spines['right'].set_visible(False)
+
+axim = ax_4.contour(100 * peak_data4,
+                  colors='w',
+                  levels=vtick,
+                  vmin=vmin,
+                  vmax=vmax,
+                  extent=(0, 1, 0, 1))
+ax_4.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+ax_4.set_ylabel('Single household\n density exponent', fontsize=12)
+ax_4.set_xlabel('Bubbled density\n exponent', fontsize=12)
+ax_4.text(-0.5, 1, 'e)',
+            fontsize=12,
+            verticalalignment='top',
+            fontfamily='serif',
+            bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
+ax_4.spines['top'].set_visible(False)
+ax_4.spines['right'].set_visible(False)
+
+axim = ax_5.contour(100 * peak_data3,
+                  colors='w',
+                  levels=vtick,
+                  vmin=vmin,
+                  vmax=vmax,
+                  extent=(0, 1, 0, 1))
+ax_5.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+ax_5.set_xlabel('Bubbled density\n exponent', fontsize=12)
+ax_5.text(-0.2, 1, 'f)',
+            fontsize=12,
+            verticalalignment='top',
+            fontfamily='serif',
+            bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
+ax_5.spines['top'].set_visible(False)
+ax_5.spines['right'].set_visible(False)
+
 fig.savefig('plots/temp_bubbles/peak_prev_grid.png',bbox_inches='tight', dpi=300)
 close()
 
@@ -173,22 +268,22 @@ fig, ((ax_0, ax_1),
       (ax_2, ax_3),
       (ax_4, ax_5)) = subplots(3, 2, sharex=True, sharey=True, figsize=(6,8))
 
-vmin_bl = 0.5*floor(2*100*baseline_end_array.min())
-vmax_bl = 0.5*ceil(2*100*baseline_end_array.max())
-vmin_0 = 0.5*floor(2*100*end_data0.min())
-vmax_0 = 0.5*ceil(2*100*end_data0.max())
-vmin_2 = 0.5*floor(2*100*end_data2.min())
-vmax_2 = 0.5*ceil(2*100*end_data2.max())
-vmin_1 = 0.5*floor(2*100*end_data1.min())
-vmax_1 = 0.5*ceil(2*100*end_data1.max())
-vmin_4 = 0.5*floor(2*100*end_data4.min())
-vmax_4 = 0.5*ceil(2*100*end_data4.max())
-vmin_3 = 0.5*floor(2*100*end_data3.min())
-vmax_3 = 0.5*ceil(2*100*end_data3.max())
+vmin_bl = floor(100*baseline_end_array.min())
+vmax_bl = ceil(100*baseline_end_array.max())
+vmin_0 = floor(100*end_data0.min())
+vmax_0 = ceil(100*end_data0.max())
+vmin_2 = floor(100*end_data2.min())
+vmax_2 = ceil(100*end_data2.max())
+vmin_1 = floor(100*end_data1.min())
+vmax_1 = ceil(100*end_data1.max())
+vmin_4 = floor(100*end_data4.min())
+vmax_4 = ceil(100*end_data4.max())
+vmin_3 = floor(100*end_data3.min())
+vmax_3 = ceil(100*end_data3.max())
 
 vmin = min(vmin_bl, vmin_0, vmin_1, vmin_2, vmin_3, vmin_4)
 vmax = max(vmax_bl, vmax_0, vmax_1, vmax_2, vmax_3, vmax_4)
-vtick = arange(vmin, vmax+0.5, 0.5)
+vtick = arange(vmin, vmax+1.0, 1.0)
 
 axim = ax_0.imshow(100 * baseline_end_array,
                   origin='lower',
@@ -286,6 +381,101 @@ cbar = fig.colorbar(axim,
                 ticks=vtick)
 cbar.set_label("Cumulative %\n prevalence", fontsize=12)
 cbar.outline.set_visible(False)
+
+axim = ax_0.contour(100 * baseline_end_array,
+                  colors='w',
+                  levels=vtick,
+                  vmin=vmin,
+                  vmax=vmax,
+                  extent=(0, 1, 0, 1))
+ax_0.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+ax_0.set_ylabel('Single household\n density exponent', fontsize=12)
+ax_0.text(-0.5, 1, 'a)',
+            fontsize=12,
+            verticalalignment='top',
+            fontfamily='serif',
+            bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
+ax_0.spines['top'].set_visible(False)
+ax_0.spines['right'].set_visible(False)
+
+axim = ax_1.contour(100 * end_data0,
+                  colors='w',
+                  levels=vtick,
+                  vmin=vmin,
+                  vmax=vmax,
+                  extent=(0, 1, 0, 1))
+ax_1.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+ax_1.text(-0.2, 1, 'b)',
+            fontsize=12,
+            verticalalignment='top',
+            fontfamily='serif',
+            bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
+ax_1.spines['top'].set_visible(False)
+ax_1.spines['right'].set_visible(False)
+
+axim = ax_2.contour(100 * end_data2,
+                  colors='w',
+                  levels=vtick,
+                  vmin=vmin,
+                  vmax=vmax,
+                  extent=(0, 1, 0, 1))
+ax_2.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+ax_2.set_ylabel('Single household\n density exponent', fontsize=12)
+ax_2.text(-0.5, 1, 'c)',
+            fontsize=12,
+            verticalalignment='top',
+            fontfamily='serif',
+            bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
+ax_2.spines['top'].set_visible(False)
+ax_2.spines['right'].set_visible(False)
+
+axim = ax_3.contour(100 * end_data1,
+                  colors='w',
+                  levels=vtick,
+                  vmin=vmin,
+                  vmax=vmax,
+                  extent=(0, 1, 0, 1))
+ax_3.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+ax_3.text(-0.2, 1, 'd)',
+            fontsize=12,
+            verticalalignment='top',
+            fontfamily='serif',
+            bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
+ax_3.spines['top'].set_visible(False)
+ax_3.spines['right'].set_visible(False)
+
+axim = ax_4.contour(100 * end_data4,
+                  colors='w',
+                  levels=vtick,
+                  vmin=vmin,
+                  vmax=vmax,
+                  extent=(0, 1, 0, 1))
+ax_4.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+ax_4.set_ylabel('Single household\n density exponent', fontsize=12)
+ax_4.set_xlabel('Bubbled density\n exponent', fontsize=12)
+ax_4.text(-0.5, 1, 'e)',
+            fontsize=12,
+            verticalalignment='top',
+            fontfamily='serif',
+            bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
+ax_4.spines['top'].set_visible(False)
+ax_4.spines['right'].set_visible(False)
+
+axim = ax_5.contour(100 * end_data3,
+                  colors='w',
+                  levels=vtick,
+                  vmin=vmin,
+                  vmax=vmax,
+                  extent=(0, 1, 0, 1))
+ax_5.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+ax_5.set_xlabel('Bubbled density\n exponent', fontsize=12)
+ax_5.text(-0.2, 1, 'f)',
+            fontsize=12,
+            verticalalignment='top',
+            fontfamily='serif',
+            bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
+ax_5.spines['top'].set_visible(False)
+ax_5.spines['right'].set_visible(False)
 
 fig.savefig('plots/temp_bubbles/cum_prev_grid.png',bbox_inches='tight', dpi=300)
 close()

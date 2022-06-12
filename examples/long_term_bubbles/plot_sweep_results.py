@@ -32,10 +32,8 @@ R_end_min = floor(R_end.min())
 R_end_max = 10 * ceil(R_end.max() / 10)
 R_endtick = R_end_min + 0.2 * (R_end_max - R_end_min) * arange(6)
 hh_prop_min = floor(hh_prop.min())
-hh_prop_max = 5 * ceil(hh_prop.max() / 5)
+hh_prop_max = 100
 hh_proptick = hh_prop_min + 0.2 * (hh_prop_max - hh_prop_min) * arange(6)
-attack_ratio_min = attack_ratio.min()
-attack_ratio_max = attack_ratio.max()
 
 
 fig, ((ax1, ax2), (ax3, ax4)) = subplots(2, 2, constrained_layout=True)
@@ -116,38 +114,39 @@ ax4.spines['top'].set_visible(False)
 ax4.spines['right'].set_visible(False)
 cbar.outline.set_visible(False)
 
+axim = ax1.contour(growth_rate,
+                  colors='w',
+                  levels=rtick,
+                  vmin=r_min,
+                  vmax=r_max,
+                  extent=(0, 1, 0, 1))
+ax1.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+
+axim = ax2.contour(peaks,
+                  colors='w',
+                  levels=peaktick,
+                  vmin=peak_min,
+                  vmax=peak_max,
+                  extent=(0, 1, 0, 1))
+ax2.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+
+axim = ax3.contour(R_end,
+                  colors='w',
+                  levels=R_endtick,
+                  vmin=R_end_min,
+                  vmax=R_end_max,
+                  extent=(0, 1, 0, 1))
+ax3.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+
+axim = ax4.contour(hh_prop,
+                  colors='w',
+                  levels=hh_proptick,
+                  vmin=hh_prop_min,
+                  vmax=hh_prop_max,
+                  extent=(0, 1, 0, 1))
+ax4.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+
 fig.savefig('plots/long_term_bubbles/grid_plot.png',
-            bbox_inches='tight',
-            dpi=300)
-close()
-
-fig, ((ax1, ax2)) = subplots(1, 2)
-axim=ax1.imshow(peaks,
-                origin='lower',
-                extent=(0,1,0,1),
-                vmin=peak_min,
-                vmax=peak_max)
-ax1.set_xlabel('Proportional reduction in\n between-household\n transmission')
-ax1.set_ylabel('Proportional uptake of support\n bubbles among\n elligible households')
-divider = make_axes_locatable(ax1)
-cax = divider.append_axes("top", size="5%", pad=0.05)
-cbar = colorbar(axim, label="Peak % prevalence", orientation='horizontal', cax=cax)
-cax.xaxis.set_ticks_position('top')
-cax.xaxis.set_label_position('top')
-
-axim=ax2.imshow(R_end,
-                origin='lower',
-                extent=(0,1,0,1),
-                vmin=R_end_min,
-                vmax=R_end_max)
-ax2.set_xlabel('Proportional reduction in\n between-household\n transmission')
-divider = make_axes_locatable(ax2)
-cax = divider.append_axes("top", size="5%", pad=0.05)
-cbar = colorbar(axim, label="Cumulative % prevalence", orientation='horizontal', cax=cax)
-cax.xaxis.set_ticks_position('top')
-cax.xaxis.set_label_position('top')
-
-fig.savefig('plots/long_term_bubbles/poster_plot.png',
             bbox_inches='tight',
             dpi=300)
 close()

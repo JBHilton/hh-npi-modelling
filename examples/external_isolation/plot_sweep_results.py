@@ -20,10 +20,12 @@ with open('outputs/oohi/results.pkl','rb') as f:
      iso_rate_range,
      iso_prob_range) = load(f)
 
+''' Convert vulnerable class prevalences to percentage of baseline'''
+vuln_peaks *= 100/(vuln_peaks[0,0])
+vuln_end *= 100/(vuln_end[0,0])
+
 ''' Parameter sweep code outputs as percentage, but scales mean we really want
 raw numbers.'''
-vuln_peaks *= 1e-2
-vuln_end *= 1e-2
 iso_peaks *= 1e-2
 cum_iso *= 1e-2
 
@@ -32,18 +34,19 @@ plotted in the paper and they're chosen to give us nice plots.'''
 p_scale = 1e5 # Scale of peaks
 c_scale = 1e3 # Scale of cumulative values
 
+no_ticks = 5
 vp_min = 0
-vp_max = ceil(p_scale * vuln_peaks.max()) / p_scale
-vptick = vp_min + 0.5 * (vp_max - vp_min) *  arange(3)
-ve_min = floor(c_scale * vuln_end.min()) / c_scale
-ve_max = ceil(c_scale * vuln_end.max()) / c_scale
-vetick = ve_min + 0.5 * (ve_max - ve_min) *  arange(3)
+vp_max = 100
+vptick = vp_min + (1/(no_ticks-1)) * (vp_max - vp_min) *  arange(no_ticks)
+ve_min = 0
+ve_max = 100
+vetick = ve_min + (1/(no_ticks-1)) * (ve_max - ve_min) *  arange(no_ticks)
 ip_min = 0
 ip_max = ceil(p_scale * iso_peaks.max()) / p_scale
-iptick = ip_min + 0.5 * (ip_max - ip_min) *  arange(3)
+iptick = arange(0, ip_max+1/p_scale, 1/p_scale)
 ci_min = 0
 ci_max = ceil(c_scale * cum_iso.max()) / c_scale
-citick = ci_min + 0.5 * (ci_max - ci_min) *  arange(3)
+citick = arange(0, ci_max+1/c_scale, 1/c_scale)
 
 fig, ((ax1, ax2), (ax3, ax4)) = subplots(2,
                                          2,
@@ -130,41 +133,39 @@ ax4.spines['top'].set_visible(False)
 ax4.spines['right'].set_visible(False)
 cbar.outline.set_visible(False)
 
+axim = ax1.contour(vuln_peaks,
+                  colors='w',
+                  levels=arange(0, 100, 10),
+                  vmin=vp_min,
+                  vmax=vp_max,
+                  extent=(0, 1, 0, 1))
+ax1.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+
+axim = ax2.contour(vuln_end,
+                  colors='w',
+                  levels=arange(0, 100, 10),
+                  vmin=ve_min,
+                  vmax=ve_max,
+                  extent=(0, 1, 0, 1))
+ax2.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+
+axim = ax3.contour(1e5 * iso_peaks,
+                  colors='w',
+                  levels=1e5 * iptick[1:],
+                  vmin=1e5 * ip_min,
+                  vmax=1e5 * ip_max,
+                  extent=(0, 1, 0, 1))
+ax3.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+
+axim = ax4.contour(1e3 * cum_iso,
+                  colors='w',
+                  levels=1e3 * citick[1:],
+                  vmin=1e3 * ci_min,
+                  vmax=1e3 * ci_max,
+                  extent=(0, 1, 0, 1))
+ax4.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+
 fig.savefig('plots/oohi/grid_plot.png',
-            bbox_inches='tight',
-            dpi=300)
-close()
-
-fig, ((ax1, ax2)) = subplots(2,1)
-
-axim=ax1.imshow(vuln_end,
-           origin='lower',
-           extent=(iso_rate_range[0],iso_rate_range[-1],0,1),
-           vmin=0,
-           vmax=ve_max)
-ax1.set_ylabel('Isolation probability')
-
-divider = make_axes_locatable(ax1)
-cax = divider.append_axes("right", size="5%", pad=0.1)
-cbar = colorbar(axim,
-                label="Cumulative clinically\n vulnerable prevalence",
-                cax=cax)
-
-axim=ax2.imshow(cum_iso,
-           origin='lower',
-           extent=(iso_rate_range[0],iso_rate_range[-1],0,1),
-           vmin=0,
-           vmax=ci_max)
-ax2.set_xlabel('Detection rate (1/days)')
-ax2.set_ylabel('Isolation probability')
-
-divider = make_axes_locatable(ax2)
-cax = divider.append_axes("right", size="5%", pad=0.1)
-cbar = colorbar(axim,
-                label="Total of population\n who isolate",
-                cax=cax)
-
-fig.savefig('plots/oohi/poster_plot.png',
             bbox_inches='tight',
             dpi=300)
 close()

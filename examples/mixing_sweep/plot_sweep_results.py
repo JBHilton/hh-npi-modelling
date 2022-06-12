@@ -30,7 +30,7 @@ r_min = 0.01 * floor(100 * growth_rate.min())
 r_max = 0.01 * floor(100 * growth_rate.max())
 rtick = r_min + 0.25 * (r_max - r_min) * arange(5)
 peak_min = floor(peaks.min())
-peak_max = 25
+peak_max = 5 * ceil(peaks.max() / 5)
 peaktick = peak_min + 0.25 * (peak_max - peak_min) * arange(5)
 R_end_min = floor(R_end.min())
 R_end_max = 10 * ceil(R_end.max() / 10)
@@ -40,6 +40,8 @@ hh_prop_max = 10 * ceil(hh_prop.max() / 10)
 hh_proptick = hh_prop_min + 0.25 * (hh_prop_max - hh_prop_min) * arange(5)
 attack_ratio_min = attack_ratio.min()
 attack_ratio_max = attack_ratio.max()
+
+contour_ticks = [10, 30, 50, 70, 90]
 
 fig, ((ax1, ax2), (ax3, ax4)) = subplots(2, 2, constrained_layout=True)
 
@@ -118,6 +120,38 @@ cbar = colorbar(axim,
 ax4.spines['top'].set_visible(False)
 ax4.spines['right'].set_visible(False)
 cbar.outline.set_visible(False)
+
+axim = ax1.contour(growth_rate,
+                  colors='w',
+                  levels=rtick,
+                  vmin=r_min,
+                  vmax=r_max,
+                  extent=(0, 1, 0, 1))
+ax1.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+
+axim = ax2.contour(peaks,
+                  colors='w',
+                  levels=peaktick,
+                  vmin=peak_min,
+                  vmax=peak_max,
+                  extent=(0, 1, 0, 1))
+ax2.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+
+axim = ax3.contour(R_end,
+                  colors='w',
+                  levels=R_endtick,
+                  vmin=R_end_min,
+                  vmax=R_end_max,
+                  extent=(0, 1, 0, 1))
+ax3.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
+
+axim = ax4.contour(hh_prop,
+                  colors='w',
+                  levels=hh_proptick,
+                  vmin=hh_prop_min,
+                  vmax=hh_prop_max,
+                  extent=(0, 1, 0, 1))
+ax4.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
 
 fig.savefig('plots/mixing_sweep/grid_plot.png',
             bbox_inches='tight',
