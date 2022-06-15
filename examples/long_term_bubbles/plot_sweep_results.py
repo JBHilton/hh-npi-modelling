@@ -40,11 +40,11 @@ fig, ((ax1, ax2), (ax3, ax4)) = subplots(2, 2, constrained_layout=True)
 
 axim=ax1.imshow(growth_rate,
                 origin='lower',
-                extent=(0,1,0,1),
+                extent=(0, 100, 0, 100),
                 vmin=r_min,
                 vmax=r_max)
 ax1.set_ylabel('% uptake of support bubbles')
-ax1.text(-0.5, 1.1, 'a)',
+ax1.text(-50., 110., 'a)',
             fontsize='medium', verticalalignment='top', fontfamily='serif',
             bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
 divider = make_axes_locatable(ax1)
@@ -59,10 +59,10 @@ cbar.outline.set_visible(False)
 
 axim=ax2.imshow(peaks,
                 origin='lower',
-                extent=(0,1,0,1),
+                extent=(0, 100, 0, 100),
                 vmin=peak_min,
                 vmax=peak_max)
-ax2.text(-0.3, 1.1, 'b)',
+ax2.text(-35., 110., 'b)',
             fontsize='medium', verticalalignment='top', fontfamily='serif',
             bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
 divider = make_axes_locatable(ax2)
@@ -77,12 +77,12 @@ cbar.outline.set_visible(False)
 
 axim=ax3.imshow(R_end,
                 origin='lower',
-                extent=(0,1,0,1),
+                extent=(0, 100, 0, 100),
                 vmin=R_end_min,
                 vmax=R_end_max)
 ax3.set_ylabel('% uptake of support bubbles')
 ax3.set_xlabel('% reduction in\n between-household\n transmission')
-ax3.text(-0.5, 1.1, 'c)',
+ax3.text(-50., 110., 'c)',
             fontsize='medium', verticalalignment='top', fontfamily='serif',
             bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
 divider = make_axes_locatable(ax3)
@@ -97,11 +97,11 @@ cbar.outline.set_visible(False)
 
 axim=ax4.imshow(hh_prop,
                 origin='lower',
-                extent=(0,1,0,1),
+                extent=(0, 100, 0, 100),
                 vmin=hh_prop_min,
                 vmax=hh_prop_max)
 ax4.set_xlabel('% reduction in\n between-household\n transmission')
-ax4.text(-0.3, 1.1, 'd)',
+ax4.text(-35., 110., 'd)',
             fontsize='medium', verticalalignment='top', fontfamily='serif',
             bbox=dict(facecolor='1', edgecolor='none', pad=3.0))
 divider = make_axes_locatable(ax4)
@@ -119,7 +119,7 @@ axim = ax1.contour(growth_rate,
                   levels=rtick,
                   vmin=r_min,
                   vmax=r_max,
-                  extent=(0, 1, 0, 1))
+                  extent=(0, 100, 0, 100))
 ax1.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
 
 axim = ax2.contour(peaks,
@@ -127,7 +127,7 @@ axim = ax2.contour(peaks,
                   levels=peaktick,
                   vmin=peak_min,
                   vmax=peak_max,
-                  extent=(0, 1, 0, 1))
+                  extent=(0, 100, 0, 100))
 ax2.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
 
 axim = ax3.contour(R_end,
@@ -135,7 +135,7 @@ axim = ax3.contour(R_end,
                   levels=R_endtick,
                   vmin=R_end_min,
                   vmax=R_end_max,
-                  extent=(0, 1, 0, 1))
+                  extent=(0, 100, 0, 100))
 ax3.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
 
 axim = ax4.contour(hh_prop,
@@ -143,7 +143,7 @@ axim = ax4.contour(hh_prop,
                   levels=hh_proptick,
                   vmin=hh_prop_min,
                   vmax=hh_prop_max,
-                  extent=(0, 1, 0, 1))
+                  extent=(0, 100, 0, 100))
 ax4.clabel(axim, fontsize=9, inline=1, fmt='%1.1f')
 
 fig.savefig('plots/long_term_bubbles/grid_plot.png',
